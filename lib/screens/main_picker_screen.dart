@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:seat_picker_flow/pager_notifier.dart';
 import 'package:seat_picker_flow/theme.dart';
 import 'package:seat_picker_flow/animations/fade_route_builder.dart';
-import 'package:seat_picker_flow/screens/details_screen.dart';
+import 'package:seat_picker_flow/screens/ticket_screen.dart';
 import 'package:seat_picker_flow/widgets/info_widget.dart';
 import 'package:seat_picker_flow/widgets/sector_widget.dart';
 import 'package:seat_picker_flow/widgets/places_widget.dart';
 import 'package:seat_picker_flow/widgets/price_widget.dart';
 import 'package:rect_getter/rect_getter.dart';
-
-import '../place_controller.dart';
 
 class MainPickerScreen extends StatefulWidget {
   @override
@@ -17,12 +18,12 @@ class MainPickerScreen extends StatefulWidget {
 
 class _MainPickerScreenState extends State<MainPickerScreen>
     with TickerProviderStateMixin {
-  final DataModel data = DataModel();
-  final PlaceController _controller = PlaceController();
   AnimationController controller;
   AnimationController toolbarController;
   Animation<Offset> _topOffset;
+  Animation<Offset> _bottomOffset;
   Animation<double> _toolbarOpacity;
+  PagerNotifier _notifier = PagerNotifier();
 
   final Duration animationDuration = Duration(milliseconds: 300);
   final Duration delay = Duration(milliseconds: 300);
@@ -35,9 +36,15 @@ class _MainPickerScreenState extends State<MainPickerScreen>
 
     controller =
         AnimationController(vsync: this, duration: Duration(milliseconds: 400));
-    toolbarController = AnimationController(vsync: this, duration: Duration(milliseconds: 700));
-    _topOffset = Tween<Offset>(begin: Offset(0.0, -1.0), end: Offset.zero).animate(controller);
-    _toolbarOpacity = Tween<double>(begin: 0.0, end: 1).animate(toolbarController);
+    toolbarController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 700));
+    _topOffset = Tween<Offset>(begin: Offset(0.0, -1.0), end: Offset.zero)
+        .animate(controller);
+    _bottomOffset = Tween<Offset>(begin: Offset(0.0, 1.0), end: Offset.zero)
+        .animate(controller);
+    _toolbarOpacity =
+        Tween<double>(begin: 0.0, end: 1).animate(toolbarController);
+
     controller.forward();
     toolbarController.forward();
   }
@@ -52,36 +59,25 @@ class _MainPickerScreenState extends State<MainPickerScreen>
                   color: primaryColor,
                   size: 30,
                 ),
-                onPressed: () {}),
+                onPressed: () => SystemNavigator.pop()),
             title: FadeTransition(
                 opacity: _toolbarOpacity,
                 child: Text('Pick your seats', style: titleTextStyle)),
+            brightness: Brightness.light,
           ),
-          body: Column(
-            children: [
-              SlideTransition(
-                position: _topOffset,
-                child: Column(
-                  children: <Widget>[
-                    InfoWidget(),
-                    SectorChooserWidget(
-                      controller: _controller,
-                      children: data.sectors,
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: PlacesWidget(
-                  controller: _controller,
-                  children: data.places,
-                ),
-              ),
-              PriceWidget(
-                controller: _controller,
-                children: data.ticketPrice,
-              ),
-            ],
+          body: ListenableProvider<PagerNotifier>.value(
+            value: _notifier,
+            child: Column(
+              children: [
+                SlideTransition(position: _topOffset, child: InfoWidget()),
+                SlideTransition(
+                    position: _topOffset, child: SectorChooserWidget()),
+                Expanded(
+                    child: SlideTransition(
+                        position: _bottomOffset, child: PlacesWidget())),
+                SlideTransition(position: _bottomOffset, child: PriceWidget()),
+              ],
+            ),
           ),
           floatingActionButton: RectGetter(
             key: rectGetterKey,
@@ -89,9 +85,8 @@ class _MainPickerScreenState extends State<MainPickerScreen>
               onPressed: () {
                 setState(() => rect = RectGetter.getRectFromKey(rectGetterKey));
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  setState(() {
-                    rect = rect.inflate(1.3 * MediaQuery.of(context).size.longestSide);
-                  });
+                  setState(() => rect = rect
+                      .inflate(1.3 * MediaQuery.of(context).size.longestSide));
                   Future.delayed(
                     animationDuration + delay,
                     _goToNextPage,
@@ -108,14 +103,13 @@ class _MainPickerScreenState extends State<MainPickerScreen>
 
   void _goToNextPage() {
     Navigator.of(context)
-        .push(FadeRouteBuilder(page: DetailsScreen()))
+        .push(FadeRouteBuilder(page: TicketScreen()))
         .then((_) => setState(() => rect = null));
   }
 
   Widget _ripple() {
-    if (rect == null) {
-      return Container();
-    }
+    if (rect == null) return Container();
+
     return AnimatedPositioned(
       duration: animationDuration,
       left: rect.left,
@@ -130,39 +124,4 @@ class _MainPickerScreenState extends State<MainPickerScreen>
       ),
     );
   }
-}
-
-class DataModel {
-  List<Text> sectors = [
-    Text('D', style: sectorTextStyle),
-    Text('E', style: sectorTextStyle),
-    Text('F', style: sectorTextStyle),
-    Text('G', style: sectorTextStyle),
-    Text('H', style: sectorTextStyle),
-    Text('I', style: sectorTextStyle),
-    Text('C', style: sectorTextStyle),
-    Text('J', style: sectorTextStyle),
-  ];
-
-  List<Widget> places = [
-    ZonePlacesWidget(84),
-    ZonePlacesWidget(86),
-    ZonePlacesWidget(81),
-    ZonePlacesWidget(84),
-    ZonePlacesWidget(79),
-    ZonePlacesWidget(85),
-    ZonePlacesWidget(89),
-    ZonePlacesWidget(89)
-  ];
-
-  List<Text> ticketPrice = [
-    Text('\$125', style: priceTextStyle),
-    Text('\$150', style: priceTextStyle),
-    Text('\$175', style: priceTextStyle),
-    Text('\$200', style: priceTextStyle),
-    Text('\$225', style: priceTextStyle),
-    Text('\$250', style: priceTextStyle),
-    Text('\$275', style: priceTextStyle),
-    Text('\$300', style: priceTextStyle.copyWith(color: Colors.red)),
-  ];
 }

@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:seat_picker_flow/pager_notifier.dart';
 import 'package:seat_picker_flow/theme.dart';
-import '../place_controller.dart';
 
 class PriceWidget extends StatefulWidget {
-  final PlaceController controller;
-  final List<Text> children;
+  final List<Text> children = [
+    Text('\$125', style: priceTextStyle),
+    Text('\$150', style: priceTextStyle),
+    Text('\$175', style: priceTextStyle),
+    Text('\$200', style: priceTextStyle),
+    Text('\$225', style: priceTextStyle),
+    Text('\$250', style: priceTextStyle),
+    Text('\$275', style: priceTextStyle),
+    Text('\$300', style: priceTextStyle.copyWith(color: Colors.red))
+  ];
 
-  const PriceWidget({
-    this.children,
-    this.controller,
-  });
 
   @override
   _PriceWidgetState createState() => _PriceWidgetState();
 }
 
-class _PriceWidgetState extends State<PriceWidget>
-    with TickerProviderStateMixin {
+class _PriceWidgetState extends State<PriceWidget> with TickerProviderStateMixin {
   AnimationController _animationController;
   Animation<Offset> _slideIn;
   Animation<double> _fadeIn;
@@ -28,7 +32,6 @@ class _PriceWidgetState extends State<PriceWidget>
       duration: Duration(milliseconds: 300),
       vsync: this,
     );
-    widget.controller.addListener(() => setState(() {}));
   }
 
   @override
@@ -52,7 +55,7 @@ class _PriceWidgetState extends State<PriceWidget>
                 position: _slideIn,
                 child: FadeTransition(
                   opacity: _fadeIn,
-                  child: widget.children[widget.controller.value],
+                  child: widget.children[Provider.of<PagerNotifier>(context).position],
                 ),
               )
             ],

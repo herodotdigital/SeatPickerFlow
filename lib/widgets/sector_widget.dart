@@ -1,88 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:seat_picker_flow/place_controller.dart';
+import 'package:provider/provider.dart';
+import 'package:seat_picker_flow/pager_notifier.dart';
 import 'package:seat_picker_flow/theme.dart';
 
-class SectorChooserWidget extends StatefulWidget {
-  final List<Text> children;
-  final PlaceController controller;
+class SectorChooserWidget extends StatelessWidget {
 
-  SectorChooserWidget({this.children, this.controller});
-
-  @override
-  _SectorChooserWidgetState createState() => _SectorChooserWidgetState();
-}
-
-class _SectorChooserWidgetState extends State<SectorChooserWidget> {
-  int selectedIndex;
-  List<SectorItem> sectors = List();
-
-  int reparseIndex(int index) {
-    int returnIndex;
-    if (index == 0)
-      returnIndex = 6;
-    else if (index == 7)
-      returnIndex = index;
-    else
-      returnIndex = index - 1;
-    return returnIndex;
-  }
-  int reverseParseIndex(int index) {
-    int returnIndex;
-    if (index == 6)
-      returnIndex = 0;
-    else if (index == 7)
-      returnIndex = index;
-    else
-      returnIndex = index + 1;
-    return returnIndex;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    widget.controller.addListener(() {
-      sectors[reparseIndex(selectedIndex)].unSelect();
-      selectedIndex = widget.controller.value;
-      sectors[reparseIndex(selectedIndex)].select();
-    });
-
-    Function(int) selectionChange = (int index) {
-      widget.controller.value = reverseParseIndex(index);
-    };
-
-    for (int i = 0; i < widget.children.length; i++) {
-      if (i == 0) {
-        sectors.add(SectorItem(i,
-            child: widget.children[i],
-            isStartItem: true,
-            isSelected: i == reparseIndex(widget.controller.value),
-            onSelectionChanged: selectionChange));
-      } else if (i == 5) {
-        sectors.add(SectorItem(i,
-            child: widget.children[i],
-            isEndItem: true,
-            isSelected: i == reparseIndex(widget.controller.value),
-            onSelectionChanged: selectionChange));
-      } else if (i == 6 || i == 7) {
-        sectors.add(SectorItem(i,
-            child: widget.children[i],
-            onSelectionChanged: selectionChange,
-            isSelected: i == reparseIndex(widget.controller.value),
-            visibleShadow: true));
-      } else {
-        sectors.add(SectorItem(i,
-            isSelected: i == reparseIndex(widget.controller.value),
-            child: widget.children[i],
-            onSelectionChanged: selectionChange));
-      }
-    }
-
-    selectedIndex = widget.controller.value;
+  List<Widget> mockSectors(){
+    return [
+      SectorItem(0, child: Text('C', style: sectorTextStyle), visibleShadow: true),
+      SectorItem(1, child: Text('D', style: sectorTextStyle), isStartItem: true),
+      SectorItem(2, child: Text('E', style: sectorTextStyle)),
+      SectorItem(3, child: Text('F', style: sectorTextStyle)),
+      SectorItem(4, child: Text('G', style: sectorTextStyle)),
+      SectorItem(5, child: Text('H', style: sectorTextStyle)),
+      SectorItem(6, child: Text('I', style: sectorTextStyle), isEndItem: true),
+      SectorItem(7, child: Text('J', style: sectorTextStyle), visibleShadow: true),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> sectors = mockSectors();
+
     return Padding(
       padding: EdgeInsets.all(8.0),
       child: Column(
@@ -91,12 +30,12 @@ class _SectorChooserWidgetState extends State<SectorChooserWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              sectors[0],
               sectors[1],
               sectors[2],
               sectors[3],
               sectors[4],
               sectors[5],
+              sectors[6],
             ],
           ),
           SizedBox(height: 8),
@@ -105,7 +44,7 @@ class _SectorChooserWidgetState extends State<SectorChooserWidget> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                sectors[6],
+                sectors[0],
                 sectors[7],
               ],
             ),
@@ -114,77 +53,55 @@ class _SectorChooserWidgetState extends State<SectorChooserWidget> {
       ),
     );
   }
+
 }
 
-class SectorItem extends StatefulWidget {
+class SectorItem extends StatelessWidget {
   final int index;
   final bool isStartItem;
   final bool isEndItem;
   final Text child;
   final bool visibleShadow;
-  final Function onSelectionChanged;
-  final bool isSelected;
-  final _state = _SectorItemState();
 
-  SectorItem(
+  const SectorItem(
     this.index, {
+    Key key,
     this.isStartItem = false,
     this.isEndItem = false,
-    @required this.child,
-    @required this.onSelectionChanged,
-    this.isSelected = false,
     this.visibleShadow = false,
-  });
-
-  @override
-  _SectorItemState createState() => _state;
-
-  void unSelect() => _state.unSelect();
-
-  void select() => _state.select();
-}
-
-class _SectorItemState extends State<SectorItem> {
-  BorderSide _border = BorderSide.none;
-  double _opacity = 0.4;
-  Color _fillColor = cardBackground;
-  bool _isChecked = false;
-
-  void handleState() {
-    _opacity = _isChecked ? 1 : 0.4;
-    _border = _isChecked
-        ? BorderSide(color: primaryColor, width: 4)
-        : BorderSide.none;
-    _fillColor = _isChecked ? Colors.white : cardBackground;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _isChecked = widget.isSelected;
-  }
+    this.child,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     BorderRadiusGeometry radius = BorderRadius.zero;
-    if (widget.isStartItem)
+    if (isStartItem)
       radius = BorderRadius.only(
         topLeft: Radius.circular(50),
       );
-    else if (widget.isEndItem) {
+    else if (isEndItem) {
       radius = BorderRadius.only(
         topRight: Radius.circular(50),
       );
     }
 
     EdgeInsets padding = EdgeInsets.zero;
-    if (widget.isStartItem) {
+    if (isStartItem) {
       padding = EdgeInsets.only(left: 8.0);
-    } else if (widget.isEndItem) {
+    } else if (isEndItem) {
       padding = EdgeInsets.only(right: 8.0);
     }
 
-    handleState();
+    PagerNotifier notifier = Provider.of<PagerNotifier>(context, listen: true);
+
+    double _opacity = index == notifier.position ? 1 : 0.4;
+    BorderSide _border = index == notifier.position
+        ? BorderSide(color: primaryColor, width: 4)
+        : BorderSide.none;
+    Color _fillColor =
+        index == notifier.position ? Colors.white : cardBackground;
+
+    final buttonSize = (MediaQuery.of(context).size.width / 6) - 8;
 
     return Opacity(
       opacity: _opacity,
@@ -193,23 +110,22 @@ class _SectorItemState extends State<SectorItem> {
           RawMaterialButton(
             shape: RoundedRectangleBorder(borderRadius: radius, side: _border),
             elevation: 0,
-            constraints: BoxConstraints.tight(Size(60, 60)),
+            constraints: BoxConstraints.tight(Size(buttonSize, buttonSize)),
             fillColor: _fillColor,
             highlightElevation: 2,
             child: Padding(
               padding: padding,
-              child: widget.child,
+              child: child,
             ),
             onPressed: () {
-              widget.onSelectionChanged(widget.index);
-              select();
+              notifier.setupOnPosition(index);
             },
           ),
           Visibility(
-            visible: widget.visibleShadow,
+            visible: visibleShadow,
             child: Positioned(
               bottom: 0,
-              width: 60,
+              width: buttonSize,
               child: Container(
                 height: 20.0,
                 decoration: BoxDecoration(
@@ -230,8 +146,4 @@ class _SectorItemState extends State<SectorItem> {
       ),
     );
   }
-
-  void unSelect() => setState(() => _isChecked = false);
-
-  void select() => setState(() => _isChecked = true);
 }

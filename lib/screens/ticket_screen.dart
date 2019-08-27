@@ -1,59 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:seat_picker_flow/theme.dart';
 
-class DetailsScreen extends StatefulWidget {
+class TicketScreen extends StatefulWidget {
   @override
-  _DetailsScreenState createState() => _DetailsScreenState();
+  _TicketScreenState createState() => _TicketScreenState();
 }
 
-class _DetailsScreenState extends State<DetailsScreen> {
+class _TicketScreenState extends State<TicketScreen> {
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: primaryColor,
-      appBar: AppBar(
-        elevation: 0,
+  Widget build(BuildContext context) => Scaffold(
         backgroundColor: primaryColor,
-        title: Text(
-          'Your order',
-          style: titleTextStyle.copyWith(color: Colors.white),
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: primaryColor,
+          title: Text(
+            'Your order',
+            style: titleTextStyle.copyWith(color: Colors.white),
+          ),
+          brightness: Brightness.dark,
+          leading: IconButton(
+              icon: Icon(Icons.close),
+              onPressed: () {
+                Navigator.of(context).pop();
+              }),
         ),
-        leading: IconButton(
-            icon: Icon(Icons.close),
-            onPressed: () {
-              Navigator.of(context).pop();
-            }),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(60).copyWith(left: 80, right: 80),
-        child: Column(
-          children: <Widget>[
-            TicketSummary(),
-            SizedBox(height: 40),
-            TicketSummary(),
-            Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: RawMaterialButton(
-                  fillColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24)),
-                  onPressed: () {},
-                  child: Padding(
-                    padding: EdgeInsets.all(8.0).copyWith(left: 16, right: 16),
-                    child: Text(
-                      'Order & Pay',
-                      style: priceTextStyle,
+        body: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 80, vertical: 60),
+          child: Column(
+            children: <Widget>[
+              TicketSummary(),
+              SizedBox(height: 40),
+              TicketSummary(),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: RawMaterialButton(
+                    fillColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24)),
+                    onPressed: () {},
+                    child: Padding(
+                      padding:
+                          EdgeInsets.all(8.0).copyWith(left: 16, right: 16),
+                      child: Text(
+                        'Order & Pay',
+                        style: priceTextStyle,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
 
 class TicketSummary extends StatelessWidget {

@@ -1,5 +1,5 @@
 name: seat_picker_flow
-description: A simple mock implementation Jarek Mackow flow from dribble
+description: A simple mocked implementation of Jarek Mackow flow from dribble
 
 version: 1.0.0+1
 
@@ -10,14 +10,14 @@ dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^0.1.2
+  font_awesome_flutter: ^8.5.0
+  animated_text_kit: ^1.3.1
+  rect_getter: ^0.0.1
+  provider: ^3.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  font_awesome_flutter: ^8.5.0
-  animated_text_kit: ^1.3.1
-  rect_getter: ^0.0.1
 
 
 
